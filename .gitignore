@@ -1,0 +1,18 @@
+node_modules/
+dist/
+*.log
+tsconfig.tsbuildinfo
+
+# Локальные настройки инструментов (preview/launch)
+.claude/
+
+# Промежуточные текстовые дампы pdftotext (пересобираются из source/*.pdf)
+source/*.txt
+
+# Исходные PDF не публикуем: производные данные уже в public/data/*.json.
+# Для пересборки (bun run data) положите файлы в source/ локально.
+source/*.pdf
+
+# Системное
+.DS_Store
+Thumbs.db

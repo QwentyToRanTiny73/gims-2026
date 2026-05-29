@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────── Морские темы (RGB-каналы для Tailwind alpha) ───────────
+   Светлая (дневная) — по умолчанию: песок/небо/глубокая вода, высокий
+   контраст для чтения при дневном свете. Тёмная — глубокое море. */
+:root,
+html[data-theme='light'] {
+  color-scheme: light;
+  --c-bg: 233 242 248; /* #E9F2F8 светлое море-небо */
+  --c-surface: 255 255 255; /* карточки */
+  --c-surface2: 219 233 242; /* #DBE9F2 */
+  --c-line: 183 205 219; /* #B7CDDB */
+  --c-ink: 11 34 49; /* #0B2231 глубокий тёмно-синий текст */
+  --c-muted: 70 92 110; /* #465C6E */
+  --c-accent: 19 108 146; /* #136C92 морская волна */
+  --c-accent-hover: 14 83 112; /* #0E5370 */
+  --c-ok: 21 122 79; /* #157A4F */
+  --c-warn: 154 102 0; /* #9A6600 янтарный (контраст на светлом) */
+  --c-danger: 192 57 43; /* #C0392B */
+
+  --chart-line: #136c92;
+  --chart-grid: #c9dce8;
+  --chart-axis: #465c6e;
+  --chart-tip-bg: #ffffff;
+  --chart-tip-border: #b7cddb;
+  --chart-tip-text: #0b2231;
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+  --c-bg: 11 27 41; /* #0B1B29 глубокое море */
+  --c-surface: 18 40 58; /* #12283A */
+  --c-surface2: 30 58 82; /* #1E3A52 */
+  --c-line: 47 74 99; /* #2F4A63 */
+  --c-ink: 234 242 248; /* #EAF2F8 */
+  --c-muted: 154 179 200; /* #9AB3C8 */
+  --c-accent: 71 162 209; /* #47A2D1 яркая волна */
+  --c-accent-hover: 109 188 226; /* #6DBCE2 */
+  --c-ok: 52 199 123; /* #34C77B */
+  --c-warn: 224 163 62; /* #E0A33E */
+  --c-danger: 233 100 84; /* #E96454 */
+
+  --chart-line: #47a2d1;
+  --chart-grid: #274055;
+  --chart-axis: #9ab3c8;
+  --chart-tip-bg: #12283a;
+  --chart-tip-border: #2f4a63;
+  --chart-tip-text: #eaf2f8;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: rgb(var(--c-bg));
+  color: rgb(var(--c-ink));
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Переключатель размера шрифта: масштабируем корневой rem (3 ступени) */
+html {
+  font-size: 16px;
+}
+html[data-font='large'] {
+  font-size: 19px;
+}
+html[data-font='xlarge'] {
+  font-size: 22px;
+}
+
+/* Видимый фокус для доступности (WCAG 2.4.7) */
+:focus-visible {
+  outline: 2px solid rgb(var(--c-accent-hover));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Уважаем prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl bg-surface border border-line/60 p-4;
+  }
+  /* минимальный тач-таргет 44×44 (WCAG 2.5.5) */
+  .tap {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  .btn {
+    @apply tap inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium
+      transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-accent text-white hover:bg-accent-hover;
+  }
+  .btn-ghost {
+    @apply btn bg-surface2 text-ink hover:bg-line/70;
+  }
+}
+
+/* Тонкий скроллбар */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--c-line)) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgb(var(--c-line));
+  border-radius: 8px;
+}

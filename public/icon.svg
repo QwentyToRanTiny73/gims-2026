@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ГИМС 2026">
+  <rect width="512" height="512" rx="96" fill="#1C1C1E"/>
+  <g fill="none" stroke="#5B8DBE" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="256" cy="120" r="34"/>
+    <line x1="256" y1="154" x2="256" y2="410"/>
+    <line x1="168" y1="206" x2="344" y2="206"/>
+    <path d="M120 290 a136 136 0 0 0 272 0"/>
+    <line x1="120" y1="290" x2="86" y2="262"/>
+    <line x1="392" y1="290" x2="426" y2="262"/>
+  </g>
+</svg>
