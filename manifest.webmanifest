@@ -1,0 +1,20 @@
+{
+  "name": "ГИМС 2026 — тренажёр",
+  "short_name": "ГИМС 2026",
+  "description": "Подготовка к теоретическому экзамену ГИМС МЧС России (правила 2026, Приказ МЧС № 636).",
+  "lang": "ru",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1C1C1E",
+  "theme_color": "#1C1C1E",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
