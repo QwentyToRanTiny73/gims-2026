@@ -2,11 +2,14 @@ import { useState } from 'react';
 import { useAppData } from '../data/context';
 import { useStore } from '../store';
 import type { RuleBlock, RuleChapter } from '../data/types';
+import { ruleBlockText } from '../data/types';
 import { Callout, Mnemonic } from '../components/Callout';
 import type { CalloutKind } from '../components/Callout';
+import { RuleFigure } from '../components/figures/RuleFigure';
 import { BookmarkButton } from '../components/buttons';
 import { SearchBar, Highlight } from '../components/SearchBar';
 import { navigate } from '../router';
+import { cx } from '../ui/util';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
 
 export function RulesScreen({ param }: { param: string | null }) {
@@ -23,7 +26,7 @@ export function RulesScreen({ param }: { param: string | null }) {
     ? rules.chapters
         .map((c) => ({
           chapter: c,
-          hits: c.blocks.filter((b) => 'text' in b && b.text.toLowerCase().includes(q)),
+          hits: c.blocks.filter((b) => ruleBlockText(b).toLowerCase().includes(q)),
         }))
         .filter((x) => x.hits.length || x.chapter.title.toLowerCase().includes(q))
     : null;
@@ -43,13 +46,11 @@ export function RulesScreen({ param }: { param: string | null }) {
               <div className="font-semibold">
                 <span className="text-accent-hover">{c.id}</span> {c.title}
               </div>
-              {hits.slice(0, 2).map((h, i) =>
-                'text' in h ? (
-                  <p key={i} className="mt-1 text-sm text-muted">
-                    …<Highlight text={h.text.slice(0, 140)} query={query} />…
-                  </p>
-                ) : null
-              )}
+              {hits.slice(0, 2).map((h, i) => (
+                <p key={i} className="mt-1 text-sm text-muted">
+                  …<Highlight text={ruleBlockText(h).slice(0, 140)} query={query} />…
+                </p>
+              ))}
             </button>
           ))
         : rules.chapters.map((c) => {
@@ -143,6 +144,60 @@ function BlockView({ block, chapterId, index }: { block: RuleBlock; chapterId: s
           </table>
         </div>
       );
+    case 'figure':
+      return (
+        <figure className="rounded-xl border border-line/60 bg-surface2/40 p-3">
+          <RuleFigure figure={block.figure} />
+          {block.caption && (
+            <figcaption className="mt-2 text-center text-xs text-muted">{block.caption}</figcaption>
+          )}
+        </figure>
+      );
+    case 'terms':
+      return (
+        <dl className="overflow-hidden rounded-xl border border-line">
+          {block.items.map((it, i) => (
+            <div
+              key={i}
+              className="grid grid-cols-[minmax(96px,36%)_1fr] border-b border-line/60 last:border-b-0 odd:bg-surface/40"
+            >
+              <dt className="px-3 py-2 font-semibold text-accent-hover">{it.term}</dt>
+              <dd className="px-3 py-2">{it.def}</dd>
+            </div>
+          ))}
+        </dl>
+      );
+    case 'qa':
+      return (
+        <div className="rounded-xl border border-line/60 bg-surface2/40 p-3">
+          <p className="font-semibold leading-snug">
+            <span className="text-accent-hover">Вопрос. </span>
+            {block.q}
+          </p>
+          <p className="mt-1 leading-snug">
+            <span className="font-semibold text-ok">Ответ. </span>
+            {block.a}
+          </p>
+          {block.note && <p className="mt-1 text-sm text-muted">{block.note}</p>}
+          {block.trap && (
+            <div className="mt-2">
+              <Callout kind="trap">{block.trap}</Callout>
+            </div>
+          )}
+        </div>
+      );
+    case 'list': {
+      const Tag = block.ordered ? 'ol' : 'ul';
+      return (
+        <Tag className={cx('space-y-1 pl-5', block.ordered ? 'list-decimal' : 'list-disc')}>
+          {block.items.map((it, i) => (
+            <li key={i} className="leading-relaxed marker:text-accent">
+              {it}
+            </li>
+          ))}
+        </Tag>
+      );
+    }
     default:
       return null;
   }

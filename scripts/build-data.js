@@ -456,11 +456,14 @@ function main() {
   fs.mkdirSync(OUT, { recursive: true });
   const tickets = parseTickets();
   const reference = parseReference();
-  const rules = parseRules();
+  // Глава «Правила» теперь выверена вручную и хранится как типизированный
+  // модуль src/data/rules.data.ts (со схемами-рисунками), поэтому rules.json
+  // больше не генерируется. parseRules() оставлен для справочного отчёта.
+  parseRules();
   fs.writeFileSync(path.join(OUT, 'tickets.json'), JSON.stringify(tickets, null, 2));
   fs.writeFileSync(path.join(OUT, 'reference.json'), JSON.stringify(reference, null, 2));
-  fs.writeFileSync(path.join(OUT, 'rules.json'), JSON.stringify(rules, null, 2));
   console.log('=== BUILD REPORT ===');
+  console.log('ПРИМЕЧАНИЕ: rules.json не пишется — правила курируются в src/data/rules.data.ts');
   console.log(JSON.stringify(report, null, 2));
 }
 main();

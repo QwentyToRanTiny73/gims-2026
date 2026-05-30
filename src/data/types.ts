@@ -49,12 +49,24 @@ export interface ReferenceFile {
   blocks: ReferenceBlock[];
 }
 
+export type FigureId =
+  | 'ship-anatomy'
+  | 'stability-states'
+  | 'nav-lights'
+  | 'crossing'
+  | 'fire-steps'
+  | 'cpr';
+
 export type RuleBlock =
   | { type: 'heading'; text: string }
   | { type: 'paragraph'; text: string }
   | { type: 'mnemonic'; text: string }
   | { type: 'callout'; kind: 'new2026' | 'changed2026' | 'kept' | 'warning' | 'trap'; text: string }
-  | { type: 'table'; head: string[]; rows: string[][] };
+  | { type: 'table'; head: string[]; rows: string[][] }
+  | { type: 'figure'; figure: FigureId; caption?: string }
+  | { type: 'terms'; items: { term: string; def: string }[] }
+  | { type: 'qa'; q: string; a: string; note?: string; trap?: string }
+  | { type: 'list'; ordered?: boolean; items: string[] };
 
 export interface RuleChapter {
   id: string;
@@ -64,6 +76,29 @@ export interface RuleChapter {
 
 export interface RulesFile {
   chapters: RuleChapter[];
+}
+
+// Плоский текст блока правил — для полнотекстового поиска и сниппетов.
+export function ruleBlockText(b: RuleBlock): string {
+  switch (b.type) {
+    case 'heading':
+    case 'paragraph':
+    case 'mnemonic':
+    case 'callout':
+      return b.text;
+    case 'table':
+      return [...b.head, ...b.rows.flat()].join(' ');
+    case 'figure':
+      return b.caption ?? '';
+    case 'terms':
+      return b.items.map((i) => `${i.term} ${i.def}`).join(' ');
+    case 'qa':
+      return [b.q, b.a, b.note ?? '', b.trap ?? ''].join(' ');
+    case 'list':
+      return b.items.join(' ');
+    default:
+      return '';
+  }
 }
 
 // Удобные «плоские» представления для поиска/режимов.

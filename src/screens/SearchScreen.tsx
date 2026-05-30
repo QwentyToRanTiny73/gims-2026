@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useAppData } from '../data/context';
+import { ruleBlockText } from '../data/types';
 import { SearchBar, Highlight } from '../components/SearchBar';
 import { navigate } from '../router';
 import { FileQuestion, Layers, BookOpen, ChevronRight } from 'lucide-react';
@@ -51,11 +52,12 @@ export function SearchScreen() {
     const rules: Hit[] = [];
     for (const ch of data.rules.chapters) {
       ch.blocks.forEach((b, i) => {
-        if ('text' in b && b.text.toLowerCase().includes(q)) {
+        const t = ruleBlockText(b);
+        if (t.toLowerCase().includes(q)) {
           rules.push({
             id: `${ch.id}#${i}`,
             title: `${ch.id} ${ch.title}`,
-            snippet: b.text,
+            snippet: t,
             go: () => navigate('rules', ch.id),
           });
         }

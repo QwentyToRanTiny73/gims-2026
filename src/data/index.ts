@@ -5,6 +5,7 @@ import type {
   FlatCard,
   FlatTicketQuestion,
 } from './types';
+import { rulesData } from './rules.data';
 
 const base = import.meta.env.BASE_URL;
 
@@ -29,10 +30,11 @@ let cache: AppData | null = null;
 
 export async function loadData(): Promise<AppData> {
   if (cache) return cache;
-  const [tickets, reference, rules] = await Promise.all([
+  // Правила — выверенный вручную модуль (src/data/rules.data.ts), не JSON.
+  const rules: RulesFile = rulesData;
+  const [tickets, reference] = await Promise.all([
     getJSON<TicketsFile>('tickets.json'),
     getJSON<ReferenceFile>('reference.json'),
-    getJSON<RulesFile>('rules.json'),
   ]);
 
   const flatQuestions: FlatTicketQuestion[] = [];
