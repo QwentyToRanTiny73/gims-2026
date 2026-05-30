@@ -55,7 +55,9 @@ export type FigureId =
   | 'nav-lights'
   | 'crossing'
   | 'fire-steps'
-  | 'cpr';
+  | 'cpr'
+  | 'vvp-buoys'
+  | 'lock-lights';
 
 export type RuleBlock =
   | { type: 'heading'; text: string }

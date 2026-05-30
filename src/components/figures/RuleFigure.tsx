@@ -25,6 +25,10 @@ export function RuleFigure({ figure }: { figure: FigureId }) {
       return <FireSteps />;
     case 'cpr':
       return <Cpr />;
+    case 'vvp-buoys':
+      return <VvpBuoys />;
+    case 'lock-lights':
+      return <LockLights />;
     default:
       return null;
   }
@@ -245,6 +249,67 @@ function Cpr() {
       <Tile x={10} big="30 : 2" label="нажатий : вдохов" />
       <Tile x={160} big="5–6 см" label="глубина нажатий" />
       <Tile x={310} big="100–120" label="нажатий в минуту" />
+    </Frame>
+  );
+}
+
+/* ── Латеральная система: кромки судового хода на ВВП ── */
+function VvpBuoys() {
+  return (
+    <Frame vb="0 0 440 220">
+      <title>Плавучие знаки: кромки судового хода (латеральная система)</title>
+      {/* вода */}
+      <rect x="0" y="0" width="440" height="220" className="fill-accent/10" />
+      {/* судовой ход (фарватер) */}
+      <path d="M150,210 C150,150 290,150 290,210 Z" className="fill-accent/20" />
+      <rect x="150" y="20" width="140" height="190" className="fill-accent/20" />
+      {/* стрелка по течению */}
+      <line x1="220" y1="40" x2="220" y2="190" className="stroke-ink/50" strokeWidth="2" strokeDasharray="4 5" markerEnd="url(#flow)" />
+      <defs>
+        <marker id="flow" markerWidth="9" markerHeight="9" refX="6" refY="4.5" orient="auto">
+          <path d="M0,0 L9,4.5 L0,9 Z" className="fill-ink/50" />
+        </marker>
+      </defs>
+      <text x="220" y="34" textAnchor="middle" fontSize="11" className={TXT_MUTED}>по течению ↓</text>
+
+      {/* левая кромка — белые знаки (слева) */}
+      {[70, 120, 170].map((y) => (
+        <g key={`l${y}`}>
+          <circle cx="150" cy={y} r="9" className="fill-ink/10 stroke-ink" strokeWidth="2" />
+        </g>
+      ))}
+      {/* правая кромка — красные знаки (справа) */}
+      {[70, 120, 170].map((y) => (
+        <path key={`r${y}`} d={`M290,${y - 9} L299,${y + 7} L281,${y + 7} Z`} className="fill-danger stroke-danger" strokeWidth="1" />
+      ))}
+
+      <text x="90" y="60" textAnchor="middle" fontSize="12" fontWeight="700" className={TXT}>Левая</text>
+      <text x="90" y="76" textAnchor="middle" fontSize="11" className={TXT_MUTED}>кромка</text>
+      <text x="90" y="96" textAnchor="middle" fontSize="11" fontWeight="700" className={TXT}>белые</text>
+      <text x="360" y="60" textAnchor="middle" fontSize="12" fontWeight="700" className={TXT}>Правая</text>
+      <text x="360" y="76" textAnchor="middle" fontSize="11" className={TXT_MUTED}>кромка</text>
+      <text x="360" y="96" textAnchor="middle" fontSize="11" fontWeight="700" className="fill-danger">красные</text>
+      <text x="220" y="208" textAnchor="middle" fontSize="11" className={TXT_MUTED}>Кромки определяют по течению (сверху вниз)</text>
+    </Frame>
+  );
+}
+
+/* ── Сигналы светофора шлюза ── */
+function LockLights() {
+  const Light = ({ x, on, label, tone }: { x: number; on: boolean; label: string; tone: 'red' | 'green' }) => (
+    <g>
+      <rect x={x} y="14" width="86" height="150" rx="14" className="fill-surface2 stroke-line" strokeWidth="2" />
+      <circle cx={x + 43} cy="54" r="22" className={on && tone === 'red' ? 'fill-danger' : 'fill-ink/15'} />
+      <circle cx={x + 43} cy="112" r="22" className={on && tone === 'green' ? 'fill-ok' : 'fill-ink/15'} />
+      <text x={x + 43} y="186" textAnchor="middle" fontSize="12" fontWeight="700" className={tone === 'red' ? 'fill-danger' : 'fill-ok'}>{label}</text>
+    </g>
+  );
+  return (
+    <Frame vb="0 0 320 210">
+      <title>Сигналы светофора шлюза</title>
+      <Light x={36} on label="СТОП" tone="red" />
+      <Light x={198} on label="ВХОД РАЗРЕШЁН" tone="green" />
+      <text x="160" y="204" textAnchor="middle" fontSize="11" className={TXT_MUTED}>Нет огней — шлюз не готов, вход запрещён</text>
     </Frame>
   );
 }
