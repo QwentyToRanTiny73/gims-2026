@@ -9,6 +9,8 @@ import type {
   FlatTicketQuestion,
 } from './types';
 import { rulesData } from './rules.data';
+import { extraTickets } from './extra-tickets.data';
+import { extraRules } from './extra-rules.data';
 
 const base = import.meta.env.BASE_URL;
 
@@ -53,7 +55,10 @@ export async function loadData(): Promise<AppData> {
       (s): RuleBlock[] => [{ type: 'heading', text: `${s.id} ${s.title}` }, ...s.blocks]
     ),
   }));
-  const rules: RulesFile = { chapters: [...courseChapters, ...textbookChapters] };
+  const rules: RulesFile = { chapters: [...courseChapters, ...textbookChapters, ...extraRules] };
+
+  // Билет №6 (кураторский) добавляем к разобранным из Тесты.pdf.
+  tickets.tickets = [...tickets.tickets, ...extraTickets];
 
   const flatQuestions: FlatTicketQuestion[] = [];
   for (const t of tickets.tickets) {
