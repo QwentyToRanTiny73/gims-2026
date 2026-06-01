@@ -74,10 +74,29 @@ export interface RuleChapter {
   id: string;
   title: string;
   blocks: RuleBlock[];
+  group?: string; // группа в списке глав (например, часть справочника)
 }
 
 export interface RulesFile {
   chapters: RuleChapter[];
+}
+
+// Полный справочник 2026 (public/data/textbook.json) — части → главы → разделы.
+export interface TextbookSection {
+  id: string;
+  title: string;
+  blocks: RuleBlock[];
+}
+export interface TextbookChapter {
+  num: number;
+  part: string;
+  partTitle: string;
+  title: string;
+  sections: TextbookSection[];
+}
+export interface TextbookFile {
+  parts: { id: string; title: string }[];
+  chapters: TextbookChapter[];
 }
 
 // Плоский текст блока правил — для полнотекстового поиска и сниппетов.

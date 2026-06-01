@@ -31,6 +31,20 @@ export function RulesScreen({ param }: { param: string | null }) {
         .filter((x) => x.hits.length || x.chapter.title.toLowerCase().includes(q))
     : null;
 
+  // Группировка списка глав (краткий курс + части справочника).
+  const groups: { title: string; items: RuleChapter[] }[] = [];
+  if (!matches) {
+    for (const c of rules.chapters) {
+      const g = c.group ?? 'Прочее';
+      let grp = groups.find((x) => x.title === g);
+      if (!grp) {
+        grp = { title: g, items: [] };
+        groups.push(grp);
+      }
+      grp.items.push(c);
+    }
+  }
+
   return (
     <div className="space-y-3">
       <SearchBar value={query} onChange={setQuery} label="Поиск по правилам" placeholder="Поиск по правилам…" />
@@ -53,24 +67,37 @@ export function RulesScreen({ param }: { param: string | null }) {
               ))}
             </button>
           ))
-        : rules.chapters.map((c) => {
-            const marked = store.bookmarks.ruleRefs.includes(c.id);
-            return (
-              <div key={c.id} className="card flex items-center justify-between gap-2 hover:border-accent/50">
-                <button
-                  type="button"
-                  onClick={() => navigate('rules', c.id)}
-                  className="flex flex-1 items-center justify-between gap-3 text-left"
-                >
-                  <div className="font-semibold">
-                    <span className="text-accent-hover">{c.id}</span> {c.title}
-                  </div>
-                  <ChevronRight className="h-5 w-5 shrink-0 text-muted" aria-hidden="true" />
-                </button>
-                <BookmarkButton active={marked} onClick={() => toggleRuleBookmark(c.id)} />
+        : groups.map((g) => (
+            <section key={g.title}>
+              <h2 className="mb-2 mt-1 px-1 text-sm font-semibold uppercase tracking-wide text-muted">
+                {g.title}
+              </h2>
+              <div className="space-y-2">
+                {g.items.map((c) => {
+                  const marked = store.bookmarks.ruleRefs.includes(c.id);
+                  return (
+                    <div
+                      key={c.id}
+                      className="card flex items-center justify-between gap-2 hover:border-accent/50"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => navigate('rules', c.id)}
+                        className="flex flex-1 items-center justify-between gap-3 text-left"
+                      >
+                        <div className="font-semibold">
+                          {!c.id.startsWith('S') && <span className="text-accent-hover">{c.id} </span>}
+                          {c.title}
+                        </div>
+                        <ChevronRight className="h-5 w-5 shrink-0 text-muted" aria-hidden="true" />
+                      </button>
+                      <BookmarkButton active={marked} onClick={() => toggleRuleBookmark(c.id)} />
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+            </section>
+          ))}
     </div>
   );
 }
@@ -87,7 +114,8 @@ function ChapterView({ chapter }: { chapter: RuleChapter }) {
         <BookmarkButton active={marked} onClick={() => toggleRuleBookmark(chapter.id)} />
       </div>
       <h2 className="px-1 text-2xl font-bold">
-        <span className="text-accent-hover">{chapter.id}.</span> {chapter.title}
+        {!chapter.id.startsWith('S') && <span className="text-accent-hover">{chapter.id}. </span>}
+        {chapter.title}
       </h2>
       <div className="space-y-3">
         {chapter.blocks.map((b, i) => (

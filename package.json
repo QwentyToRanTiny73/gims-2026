@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "data": "bun scripts/build-data.js",
+    "data": "bun scripts/build-data.js && bun scripts/build-textbook.js",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {

@@ -2,6 +2,9 @@ import type {
   TicketsFile,
   ReferenceFile,
   RulesFile,
+  RuleChapter,
+  RuleBlock,
+  TextbookFile,
   FlatCard,
   FlatTicketQuestion,
 } from './types';
@@ -30,12 +33,27 @@ let cache: AppData | null = null;
 
 export async function loadData(): Promise<AppData> {
   if (cache) return cache;
-  // Правила — выверенный вручную модуль (src/data/rules.data.ts), не JSON.
-  const rules: RulesFile = rulesData;
-  const [tickets, reference] = await Promise.all([
+  const [tickets, reference, textbook] = await Promise.all([
     getJSON<TicketsFile>('tickets.json'),
     getJSON<ReferenceFile>('reference.json'),
+    getJSON<TextbookFile>('textbook.json'),
   ]);
+
+  // Раздел «Правила» = краткий курс-тренажёр (A0–A9, выверен вручную)
+  // + полный справочник 2026 (26 глав, сгруппированы по частям I–VIII).
+  const courseChapters: RuleChapter[] = rulesData.chapters.map((c) => ({
+    ...c,
+    group: c.group ?? 'Краткий курс (тренажёр)',
+  }));
+  const textbookChapters: RuleChapter[] = textbook.chapters.map((c) => ({
+    id: `S${c.num}`,
+    title: `Глава ${c.num}. ${c.title}`,
+    group: c.partTitle,
+    blocks: c.sections.flatMap(
+      (s): RuleBlock[] => [{ type: 'heading', text: `${s.id} ${s.title}` }, ...s.blocks]
+    ),
+  }));
+  const rules: RulesFile = { chapters: [...courseChapters, ...textbookChapters] };
 
   const flatQuestions: FlatTicketQuestion[] = [];
   for (const t of tickets.tickets) {
