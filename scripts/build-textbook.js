@@ -14,6 +14,7 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 const SRC = path.join(ROOT, 'source', 'Spravochnik_full.txt');
 const OUT = path.join(ROOT, 'public', 'data', 'textbook.json');
+const OUT_REF = path.join(ROOT, 'public', 'data', 'reference.json');
 
 const collapse = (s) => (s || '').replace(/\s+/g, ' ').trim();
 
@@ -234,10 +235,50 @@ function parse() {
   return { parts: PARTS.map((p) => ({ id: p.id, title: p.title })), chapters: kept };
 }
 
+// Чистые карточки для «Режима изучения»: вопросы экзамена и определения
+// из полного справочника, сгруппированные по частям → главам.
+function buildReference(data) {
+  const blocks = data.parts.map((p) => ({ id: `part-${p.id}`, title: p.title, sections: [] }));
+  const byPart = Object.fromEntries(blocks.map((b) => [b.id.replace('part-', ''), b]));
+  for (const c of data.chapters) {
+    const cards = [];
+    let i = 0;
+    for (const s of c.sections) {
+      for (const b of s.blocks) {
+        if (b.type === 'qa' && b.q && b.a) {
+          const hint = [b.note, b.trap ? `⚠ ${b.trap}` : ''].filter(Boolean).join(' · ') || null;
+          cards.push({ id: `R-${c.num}-${++i}`, question: collapse(b.q), answer: collapse(b.a), hint, needsReview: false });
+        } else if (b.type === 'terms') {
+          for (const it of b.items) {
+            cards.push({
+              id: `R-${c.num}-${++i}`,
+              question: `Что такое «${collapse(it.term)}»?`,
+              answer: collapse(it.def),
+              hint: null,
+              needsReview: false,
+            });
+          }
+        }
+      }
+    }
+    if (cards.length) {
+      const blk = byPart[c.part];
+      blk.sections.push({ id: String(c.num), title: `Гл. ${c.num}. ${c.title}`, count: cards.length, cards });
+    }
+  }
+  return { blocks: blocks.filter((b) => b.sections.length) };
+}
+
 function main() {
   const data = parse();
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   fs.writeFileSync(OUT, JSON.stringify(data, null, 2));
+
+  const reference = buildReference(data);
+  fs.writeFileSync(OUT_REF, JSON.stringify(reference, null, 2));
+  const refCards = reference.blocks.reduce((a, b) => a + b.sections.reduce((x, s) => x + s.cards.length, 0), 0);
+  console.log('=== REFERENCE (чистые карточки из полного справочника) ===');
+  console.log('блоков:', reference.blocks.length, '| разделов:', reference.blocks.reduce((a, b) => a + b.sections.length, 0), '| карточек:', refCards);
   const totalSections = data.chapters.reduce((a, c) => a + c.sections.length, 0);
   const totalBlocks = data.chapters.reduce((a, c) => a + c.sections.reduce((x, s) => x + s.blocks.length, 0), 0);
   const qaCount = data.chapters.reduce(

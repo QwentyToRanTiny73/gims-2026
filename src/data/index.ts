@@ -1,6 +1,8 @@
 import type {
   TicketsFile,
   ReferenceFile,
+  ReferenceBlock,
+  ReferenceCard,
   RulesFile,
   RuleChapter,
   RuleBlock,
@@ -33,11 +35,56 @@ export interface AppData {
 
 let cache: AppData | null = null;
 
+// Собирает чистые карточки «вопрос → ответ» из блоков правил:
+// — qa: вопрос экзамена → ответ (+ примечание/ловушка как подсказка);
+// — terms: «Что такое …?» → определение.
+// Карточки группируются по главам, главы — по группам (части справочника).
+function buildReferenceFromRules(rules: RulesFile): ReferenceFile {
+  const blocks: ReferenceBlock[] = [];
+  const byGroup = new Map<string, ReferenceBlock>();
+  let bi = 0;
+  for (const ch of rules.chapters) {
+    const cards: ReferenceCard[] = [];
+    let i = 0;
+    for (const b of ch.blocks) {
+      if (b.type === 'qa' && b.q && b.a) {
+        const hint =
+          [b.note, b.trap ? `⚠ ${b.trap}` : ''].filter(Boolean).join(' · ') || null;
+        cards.push({ id: `${ch.id}-c${++i}`, question: b.q, answer: b.a, hint, needsReview: false });
+      } else if (b.type === 'terms') {
+        for (const it of b.items) {
+          cards.push({
+            id: `${ch.id}-c${++i}`,
+            question: `Что такое «${it.term}»?`,
+            answer: it.def,
+            hint: null,
+            needsReview: false,
+          });
+        }
+      }
+    }
+    if (!cards.length) continue;
+    const g = ch.group ?? 'Прочее';
+    let blk = byGroup.get(g);
+    if (!blk) {
+      blk = { id: `block-${++bi}`, title: g, sections: [] };
+      byGroup.set(g, blk);
+      blocks.push(blk);
+    }
+    blk.sections.push({
+      id: ch.id,
+      title: ch.title.replace(/^Глава\s+\d+\.\s*/, ''),
+      count: cards.length,
+      cards,
+    });
+  }
+  return { blocks };
+}
+
 export async function loadData(): Promise<AppData> {
   if (cache) return cache;
-  const [tickets, reference, textbook] = await Promise.all([
+  const [tickets, textbook] = await Promise.all([
     getJSON<TicketsFile>('tickets.json'),
-    getJSON<ReferenceFile>('reference.json'),
     getJSON<TextbookFile>('textbook.json'),
   ]);
 
@@ -59,6 +106,11 @@ export async function loadData(): Promise<AppData> {
 
   // Билет №6 (кураторский) добавляем к разобранным из Тесты.pdf.
   tickets.tickets = [...tickets.tickets, ...extraTickets];
+
+  // «Режим изучения» — чистые карточки, собранные из всего материала «Правил»
+  // (вопросы экзамена + определения), сгруппированные по главам. Сломанный
+  // сжатый reference.json больше не используется.
+  const reference: ReferenceFile = buildReferenceFromRules(rules);
 
   const flatQuestions: FlatTicketQuestion[] = [];
   for (const t of tickets.tickets) {
